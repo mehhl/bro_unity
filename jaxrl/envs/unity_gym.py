@@ -5,13 +5,12 @@ from gym import core, spaces
 from gym.wrappers import RescaleAction
 import numpy as np
 
-
 def _make_env_unity_gym(env_name: str, seed: int) -> core.Env:
     domain_name, task_name = "Dog", "Run"
     env = UnityEnvironment(
-        file_name="/Users/elan/unity_app.app",
-        base_port=19996,
-        no_graphics=False,
+        file_name="/Users/elan/radom_app.app",
+        base_port=19996 + seed,
+        no_graphics=True,
     )
     env = UnityToGymWrapper(env)
     env = RescaleAction(env, -1.0, 1.0)

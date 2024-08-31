@@ -11,3 +11,5 @@ jaxrl/__pycache__/
 jaxrl/bro/__pycache__/
 jaxrl/envs/__pycache__/
 jaxrl/networks/__pycache__/
+.failed.venv.attempts
+.bro.mla.venv
