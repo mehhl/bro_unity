@@ -47,5 +47,7 @@ def make_env(benchmark, env_name, seed, num_envs):
     if benchmark == 'dexhand':
         from jaxrl.envs.dexhand_gym import make_env_dexhand
         return make_env_dexhand(env_name, seed=seed, num_envs=num_envs)
-
+    if benchmark == 'unity':
+        from jaxrl.envs.unity_gym import make_env_unity_gym
+        return make_env_unity_gym(env_name, seed=seed, num_envs=num_envs)
         

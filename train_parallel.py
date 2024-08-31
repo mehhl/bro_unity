@@ -1,10 +1,11 @@
 import os
 
-os.environ['MUJOCO_GL'] = 'egl'
+# os.environ['MUJOCO_GL'] = 'glfw'
 
 import random
 import numpy as np
 import tqdm
+import jax
 from absl import app, flags
 from ml_collections import config_flags
 
@@ -41,14 +42,14 @@ def main(_):
     save_dir = f'./results/{FLAGS.env_name}_RR{str(FLAGS.updates_per_step)}/'
     wandb.init(
         config=FLAGS,
-        entity='naumix',
-        project='BRO',
+        entity='elmehlan',
+        project='radom_3d',
         group=f'{FLAGS.env_name}',
         name=f'BRO_Quantile:{FLAGS.distributional}_BS:{FLAGS.batch_size}_RR:{FLAGS.updates_per_step}'
     )
     os.makedirs(save_dir, exist_ok=True)
     env = make_env(FLAGS.benchmark, FLAGS.env_name, FLAGS.seed, num_envs=FLAGS.num_seeds)
-    eval_env = make_env(FLAGS.benchmark, FLAGS.env_name, FLAGS.seed + 42, num_envs=FLAGS.num_seeds)
+    eval_env = env # make_env(FLAGS.benchmark, FLAGS.env_name, FLAGS.seed + 42, num_envs=FLAGS.num_seeds)
     np.random.seed(FLAGS.seed)
     random.seed(FLAGS.seed)
     mute_warning()

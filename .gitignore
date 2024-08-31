@@ -4,3 +4,10 @@ jaxrl/.DS_Store
 .DS_Store
 jaxrl/.DS_Store
 scripts/.DS_Store
+wandb
+startup_venv.sh
+configs/__pycache__/
+jaxrl/__pycache__/
+jaxrl/bro/__pycache__/
+jaxrl/envs/__pycache__/
+jaxrl/networks/__pycache__/
