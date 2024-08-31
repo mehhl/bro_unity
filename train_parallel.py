@@ -35,6 +35,9 @@ flags.DEFINE_string('benchmark', 'dmc', 'Environment name.')
 flags.DEFINE_string('env_name', 'cheetah-run', 'Environment name.')
 flags.DEFINE_boolean('distributional', True, 'Use tqdm progress bar.')
 
+flags.DEFINE.string('unity_file_name', None, 'File path to Unity .app file.')
+flags.DEFINE.string('unity_train_env_graphics', False, 'Whether train Unity envs should be instantiated with the no_graphics flag.')
+flags.DEFINE.string('unity_eval_env_graphics', False, 'Whether eval Unity envs should be instantiated with the no_graphics flag.')
 
 config_flags.DEFINE_config_file('config', 'configs/bro_default.py', 'File path to the training hyperparameter configuration.', lock_config=False)
 
@@ -49,13 +52,22 @@ def main(_):
     )
     os.makedirs(save_dir, exist_ok=True)
 
-    env_kwargs, eval_env_kwargs = {}, {}
+    unity_env_kwargs, unity_train_env_kwargs, unity_eval_env_kwargs = {}, {}, {}
     if FLAGS.benchmark == 'unity':
-        env_kwargs = {
-            "no_graphics": False,
+
+        # Preprocess Unity args.
+        assert FLAGS.unity_file_name is not None, \
+            'You need to supply unity_file_path option' \
+            ' when setting Unity as benchmark.'
+
+        unity_env_kwargs = {
+            "file_name": FLAGS.unity_file_name,
         }
-        eval_env_kwargs = {
-            "no_graphics": True,
+        unity_train_env_kwargs = {
+            "no_graphics": FLAGS.unity_train_env_graphics,
+        }
+        unity_eval_env_kwargs = {
+            "no_graphics": FLAGS.unity_eval_env_graphics,
         }
 
     env = make_env(
@@ -63,14 +75,14 @@ def main(_):
         FLAGS.env_name,
         FLAGS.seed,
         num_envs=FLAGS.num_seeds,
-        **env_kwargs
+        **{**unity_env_kwargs, **unity_train_env_kwargs}
     )
     eval_env = make_env(
         FLAGS.benchmark,
         FLAGS.env_name,
         FLAGS.seed + 42,
         num_envs=FLAGS.num_seeds,
-        **eval_env_kwargs
+        **{**unity_env_kwargs, **unity_eval_env_kwargs}
     )
     np.random.seed(FLAGS.seed)
     random.seed(FLAGS.seed)
