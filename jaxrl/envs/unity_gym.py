@@ -5,12 +5,13 @@ from gym import core, spaces
 from gym.wrappers import RescaleAction
 import numpy as np
 
-def _make_env_unity_gym(env_name: str, seed: int) -> core.Env:
+
+def _make_env_unity_gym(env_name: str, seed: int, **kwargs) -> core.Env:
     domain_name, task_name = "Dog", "Run"
     env = UnityEnvironment(
         file_name="/Users/elan/radom_app.app",
         base_port=19996 + seed,
-        no_graphics=True,
+        **kwargs
     )
     env = UnityToGymWrapper(env)
     env = RescaleAction(env, -1.0, 1.0)
@@ -21,9 +22,9 @@ def _make_env_unity_gym(env_name: str, seed: int) -> core.Env:
 
 
 class make_env_unity_gym(core.Env):
-    def __init__(self, env_name: str, seed: int, num_envs: int, max_t=1000):
+    def __init__(self, env_name: str, seed: int, num_envs: int, max_t=1000, **kwargs):
         env_fns = [
-            lambda i=i: _make_env_unity_gym(env_name, seed + i)
+            lambda i=i: _make_env_unity_gym(env_name, seed + i, **kwargs)
             for i in range(num_envs)
         ]
         self.envs = [env_fn() for env_fn in env_fns]

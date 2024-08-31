@@ -48,8 +48,30 @@ def main(_):
         name=f'BRO_Quantile:{FLAGS.distributional}_BS:{FLAGS.batch_size}_RR:{FLAGS.updates_per_step}'
     )
     os.makedirs(save_dir, exist_ok=True)
-    env = make_env(FLAGS.benchmark, FLAGS.env_name, FLAGS.seed, num_envs=FLAGS.num_seeds)
-    eval_env = make_env(FLAGS.benchmark, FLAGS.env_name, FLAGS.seed + 42, num_envs=FLAGS.num_seeds)
+
+    env_kwargs, eval_env_kwargs = {}, {}
+    if FLAGS.benchmark == 'unity':
+        env_kwargs = {
+            "no_graphics": False,
+        }
+        eval_env_kwargs = {
+            "no_graphics": True,
+        }
+
+    env = make_env(
+        FLAGS.benchmark,
+        FLAGS.env_name,
+        FLAGS.seed,
+        num_envs=FLAGS.num_seeds,
+        **env_kwargs
+    )
+    eval_env = make_env(
+        FLAGS.benchmark,
+        FLAGS.env_name,
+        FLAGS.seed + 42,
+        num_envs=FLAGS.num_seeds,
+        **eval_env_kwargs
+    )
     np.random.seed(FLAGS.seed)
     random.seed(FLAGS.seed)
     mute_warning()
