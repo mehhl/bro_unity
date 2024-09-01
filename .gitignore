@@ -5,7 +5,7 @@ jaxrl/.DS_Store
 jaxrl/.DS_Store
 scripts/.DS_Store
 wandb
-startup_venv.sh
+remote_startup.sh
 configs/__pycache__/
 jaxrl/__pycache__/
 jaxrl/bro/__pycache__/
