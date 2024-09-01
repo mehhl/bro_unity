@@ -35,9 +35,9 @@ flags.DEFINE_string('benchmark', 'dmc', 'Environment name.')
 flags.DEFINE_string('env_name', 'cheetah-run', 'Environment name.')
 flags.DEFINE_boolean('distributional', True, 'Use tqdm progress bar.')
 
-flags.DEFINE.string('unity_file_name', None, 'File path to Unity .app file.')
-flags.DEFINE.string('unity_train_env_graphics', False, 'Whether train Unity envs should be instantiated with the no_graphics flag.')
-flags.DEFINE.string('unity_eval_env_graphics', False, 'Whether eval Unity envs should be instantiated with the no_graphics flag.')
+flags.DEFINE_string('unity_file_name', None, 'File path to Unity .app file.')
+flags.DEFINE_bool('unity_train_env_graphics', False, 'Whether train Unity envs should be instantiated with the no_graphics flag.')
+flags.DEFINE_bool('unity_eval_env_graphics', False, 'Whether eval Unity envs should be instantiated with the no_graphics flag.')
 
 config_flags.DEFINE_config_file('config', 'configs/bro_default.py', 'File path to the training hyperparameter configuration.', lock_config=False)
 
@@ -64,10 +64,10 @@ def main(_):
             "file_name": FLAGS.unity_file_name,
         }
         unity_train_env_kwargs = {
-            "no_graphics": FLAGS.unity_train_env_graphics,
+            "no_graphics": not FLAGS.unity_train_env_graphics,
         }
         unity_eval_env_kwargs = {
-            "no_graphics": FLAGS.unity_eval_env_graphics,
+            "no_graphics": not FLAGS.unity_eval_env_graphics,
         }
 
     env = make_env(

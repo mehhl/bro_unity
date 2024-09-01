@@ -81,8 +81,8 @@ class make_env_unity_gym(core.Env):
             ob, reward, done, info = env.step(action)
             obs.append(ob)
             rews.append(reward)
-            terms.append(False)
-            trun = True if 'TimeLimit.truncated' in info else False
+            terms.append(done)
+            trun = False  # could also check if isinstance of TimeStep.LAST
             truns.append(trun)
         return np.stack(obs), np.stack(rews), np.stack(terms), np.stack(
             truns), None
