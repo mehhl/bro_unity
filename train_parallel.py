@@ -35,9 +35,10 @@ flags.DEFINE_string('benchmark', 'dmc', 'Environment name.')
 flags.DEFINE_string('env_name', 'cheetah-run', 'Environment name.')
 flags.DEFINE_boolean('distributional', True, 'Use tqdm progress bar.')
 
-flags.DEFINE_string('unity_file_name', None, 'File path to Unity .app file.')
+flags.DEFINE_string('unity_file_name', "/Users/elan/radom_app.app", 'File path to Unity .app file.')
 flags.DEFINE_bool('unity_train_env_graphics', False, 'Whether train Unity envs should be instantiated with the no_graphics flag.')
 flags.DEFINE_bool('unity_eval_env_graphics', False, 'Whether eval Unity envs should be instantiated with the no_graphics flag.')
+flags.DEFINE_integer('trajectory_batch_size', int(10000), 'How often are trajectories being saved.')
 
 config_flags.DEFINE_config_file('config', 'configs/bro_default.py', 'File path to the training hyperparameter configuration.', lock_config=False)
 
@@ -105,8 +106,24 @@ def main(_):
     replay_buffer = ParallelReplayBuffer(env.observation_space, env.action_space.shape[-1], FLAGS.replay_buffer_size, num_seeds=FLAGS.num_seeds)
     observations = env.reset()
     eval_returns = [[] for _ in range(FLAGS.num_seeds)]
+
+
+    import time
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    wandb_run_id = wandb.run.id if wandb.run is not None else "no_wandb"
+    npz_filename = os.path.join(
+        os.getcwd(),
+        f"actions_{timestamp}_{wandb_run_id}.npz"
+    )
+    npz_actions = []
+
     for i in tqdm.tqdm(range(1, FLAGS.max_steps + 1), smoothing=0.1, disable=not FLAGS.tqdm):
         actions = env.action_space.sample() if i < FLAGS.start_training else agent.sample_actions_o(observations, temperature=1.0)
+        npz_actions.append(actions)
+        if i - 1 % FLAGS.trajectory_batch_size == 0:
+            if os.path.exists(npz_filename):
+                os.remove(npz_filename)  # Remove the old trajectory file
+            np.savez(npz_filename, np.array(npz_actions))  # Save a new trajectory file
         next_observations, rewards, terms, truns, _ = env.step(actions)
         masks = env.generate_masks(terms, truns)
         replay_buffer.insert(observations, actions, rewards, masks, truns, next_observations)
@@ -117,7 +134,6 @@ def main(_):
             infos = agent.update(batches, FLAGS.updates_per_step, i)
             log_to_wandb_if_time_to(i, infos, FLAGS.eval_interval)
         evaluate_if_time_to(i, agent, eval_env, FLAGS.eval_interval, FLAGS.eval_episodes, eval_returns, list(range(FLAGS.seed, FLAGS.seed+FLAGS.num_seeds)), save_dir)
-
 
 if __name__ == '__main__':
     app.run(main)
