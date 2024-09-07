@@ -120,7 +120,7 @@ def main(_):
     for i in tqdm.tqdm(range(1, FLAGS.max_steps + 1), smoothing=0.1, disable=not FLAGS.tqdm):
         actions = env.action_space.sample() if i < FLAGS.start_training else agent.sample_actions_o(observations, temperature=1.0)
         npz_actions.append(actions)
-        if i - 1 % FLAGS.trajectory_batch_size == 0:
+        if (i - 1) % 1000 == 0 and i > 1:
             if os.path.exists(npz_filename):
                 os.remove(npz_filename)  # Remove the old trajectory file
             np.savez(npz_filename, np.array(npz_actions))  # Save a new trajectory file
