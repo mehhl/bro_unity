@@ -8,11 +8,11 @@ from mlagents_envs.envs.unity_gym_env import UnityToGymWrapper
 
 def make_unity_env():
     env = UnityEnvironment(
-        "/Users/elan/radom_app_tst.app",
+        "/Users/elan/radom_xr/app/macos/radom_app_latest.app",
         no_graphics=True,
         additional_args=[
             '--random_initialization',
-            'false',
+            'true',
         ]
     )
     env = UnityToGymWrapper(env)
@@ -21,28 +21,36 @@ def make_unity_env():
 
 def make_raw_mujoco_env():
     env = dog.run()
-    env.physics.reset()
+    env.reset()
     return env
 
 
 def run_simulation(env, is_unity=True):
 
     joint_angles = []
-    for _ in tqdm(range(1000), desc="Simulation steps", leave=False):
+    for i in tqdm(range(1000), desc="Simulation steps", disable=True):
         if is_unity:
-            obs, _, _, _ = env.step(np.zeros(38))
-            joint_angles.append(obs)
+            obs, reward, done, _ = env.step(np.zeros(38))
+            joint_angles.append(
+                np.concatenate([
+                    obs, np.array([reward])
+                ])
+            )
+            if done:
+                env.reset()
         else:
-            _, _, _, obs = env.step(np.zeros(38))
+            _, reward, done, obs = env.step(np.zeros(38))
             joint_angles.append(
                 np.concatenate(
-                    list(obs.values())
+                    list(obs.values()) + [np.array([reward or 0.0])]
                 )
             )
+            if i == 999:  # Unfortunately Mujoco won't tell us when it's done
+                env.reset()
     return np.array(joint_angles)
 
 
-def compare_joint_angles(unity_env, mujoco_env, num_runs=1):
+def compare_joint_angles(unity_env, mujoco_env, num_runs=10):
     unity_results = []
     mujoco_results = []
 
@@ -59,7 +67,7 @@ def plot_comparison(unity_data, mujoco_data):
     cols = int(np.ceil(num_joints / rows))
 
     fig, axes = plt.subplots(rows, cols, figsize=(cols * 4, rows * 3))
-    fig.suptitle('Joint Angle Comparisons', fontsize=16)
+    fig.suptitle('Observation Comparisons', fontsize=16)
 
     for i in range(num_joints):
         ax = axes[i // cols, i % cols] if rows > 1 else axes[i]
@@ -79,7 +87,10 @@ def plot_comparison(unity_data, mujoco_data):
                         mujoco_mean - mujoco_std,
                         mujoco_mean + mujoco_std,
                         alpha=0.3)
-        ax.set_title(f'Observation {i}')
+        if i > 223:
+            ax.set_title(f'Observation {i}')
+        if i == 223:
+            ax.set_title(f'Reward')
         ax.set_xlabel('Step')
         ax.set_ylabel('Value')
         ax.legend()
